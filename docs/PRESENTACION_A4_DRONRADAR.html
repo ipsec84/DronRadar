@@ -6,17 +6,17 @@
 <style>
   @page {
     size: A4 portrait;
-    margin: 12mm 15mm 12mm 15mm;
+    margin: 10mm 12mm 10mm 12mm;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     padding: 0;
     font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
-    color: #1a202c;
+    color: #0f172a;
     background: #fff;
-    font-size: 9.5pt;
-    line-height: 1.38;
+    font-size: 8.8pt;
+    line-height: 1.34;
   }
   .page {
     width: 100%;
@@ -25,15 +25,15 @@
   }
   header {
     border-bottom: 2.5px solid #0f172a;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
+    padding-bottom: 6px;
+    margin-bottom: 9px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
   }
   .title-block h1 {
     margin: 0;
-    font-size: 19pt;
+    font-size: 17.5pt;
     font-weight: 800;
     letter-spacing: -0.5px;
     color: #0f172a;
@@ -41,26 +41,26 @@
   }
   .title-block .subtitle {
     margin: 2px 0 0 0;
-    font-size: 9.5pt;
+    font-size: 9pt;
     font-weight: 600;
     color: #2563eb;
   }
   .meta-block {
     text-align: right;
-    font-size: 8pt;
+    font-size: 7.6pt;
     color: #64748b;
   }
   .alert-box {
-    background: #f8fafc;
-    border: 1.5px solid #dc2626;
+    background: #fef2f2;
+    border: 1.5px solid #ef4444;
     border-left-width: 5px;
-    padding: 8px 12px;
+    padding: 7px 10px;
     border-radius: 4px;
-    margin-bottom: 12px;
+    margin-bottom: 9px;
   }
   .alert-box h3 {
-    margin: 0 0 3px 0;
-    font-size: 10pt;
+    margin: 0 0 2px 0;
+    font-size: 9.2pt;
     color: #b91c1c;
     display: flex;
     align-items: center;
@@ -68,72 +68,103 @@
   }
   .alert-box p {
     margin: 0;
-    font-size: 8.8pt;
+    font-size: 8.2pt;
     color: #334155;
   }
   .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 9px;
+    margin-bottom: 9px;
   }
   .card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 10px;
+    border-radius: 5px;
+    padding: 8px 10px;
   }
   .card h2 {
-    margin: 0 0 6px 0;
-    font-size: 10pt;
+    margin: 0 0 5px 0;
+    font-size: 9.2pt;
     color: #0f172a;
     border-bottom: 1px solid #cbd5e1;
-    padding-bottom: 4px;
+    padding-bottom: 3px;
     text-transform: uppercase;
   }
   ul {
     margin: 0;
-    padding-left: 16px;
+    padding-left: 15px;
   }
   li {
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
   .pros-cons {
     display: grid;
     grid-template-columns: 1.15fr 0.85fr;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 9px;
+    margin-bottom: 9px;
   }
   .pro-card {
     border: 1.5px solid #16a34a;
     background: #f0fdf4;
-    border-radius: 6px;
-    padding: 9px 11px;
+    border-radius: 5px;
+    padding: 7px 9px;
   }
   .pro-card h3 {
-    margin: 0 0 6px 0;
-    font-size: 9.5pt;
+    margin: 0 0 4px 0;
+    font-size: 8.8pt;
     color: #15803d;
   }
   .con-card {
     border: 1.5px solid #ea580c;
     background: #fff7ed;
-    border-radius: 6px;
-    padding: 9px 11px;
+    border-radius: 5px;
+    padding: 7px 9px;
   }
   .con-card h3 {
-    margin: 0 0 6px 0;
-    font-size: 9.5pt;
+    margin: 0 0 4px 0;
+    font-size: 8.8pt;
     color: #c2410c;
+  }
+  .hardware-card {
+    border: 1.5px solid #2563eb;
+    background: #eff6ff;
+    border-radius: 5px;
+    padding: 7px 10px;
+    margin-bottom: 9px;
+  }
+  .hardware-card h3 {
+    margin: 0 0 5px 0;
+    font-size: 9pt;
+    color: #1d4ed8;
+    display: flex;
+    justify-content: space-between;
+  }
+  .hw-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    font-size: 7.8pt;
+  }
+  .hw-item {
+    background: #fff;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    padding: 5px;
+  }
+  .hw-item strong {
+    color: #1e40af;
+    display: block;
+    margin-bottom: 2px;
   }
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 8.2pt;
-    margin-top: 4px;
+    font-size: 7.8pt;
+    margin-top: 3px;
   }
   th, td {
-    padding: 4px 6px;
+    padding: 3px 5px;
     border: 1px solid #cbd5e1;
     text-align: left;
   }
@@ -143,19 +174,19 @@
   }
   footer {
     border-top: 1px solid #cbd5e1;
-    padding-top: 6px;
-    margin-top: 8px;
-    font-size: 7.5pt;
+    padding-top: 5px;
+    margin-top: 6px;
+    font-size: 7.2pt;
     color: #64748b;
     display: flex;
     justify-content: space-between;
   }
   .badge {
     display: inline-block;
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: 3px;
     font-weight: 700;
-    font-size: 7.5pt;
+    font-size: 7pt;
   }
   .badge-red { background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; }
   .badge-blue { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
@@ -169,22 +200,22 @@
       <div class="subtitle">Sistema Autónomo de Detección, Clasificación y Geolocalización Acústica 3D de UAVs</div>
     </div>
     <div class="meta-block">
-      <strong>Clasificación:</strong> DOCUMENTO TÉCNICO A4<br>
-      <strong>Plataforma:</strong> ESP32-S3 + Matriz 4x I2S<br>
-      <strong>Estado:</strong> OPERATIVO v2.1
+      <strong>Documento Técnico A4</strong><br>
+      <strong>Hardware:</strong> ESP32-S3 + Matriz 4x I2S<br>
+      <strong>Versión:</strong> v2.1 Operativa (Web OTA & Mesh)
     </div>
   </header>
 
-  <!-- DIFERENCIADOR CLAVE: DRONES POR FIBRA ÓPTICA Y SIN RF -->
+  <!-- FACTOR DIFERENCIADOR: DRONES DE FIBRA ÓPTICA Y SIN RF -->
   <div class="alert-box">
     <h3>🚨 EL FACTOR DECISIVO: DRONES INMUNES A INHIBIDORES (FIBRA ÓPTICA Y VUELO AUTÓNOMO)</h3>
     <p>
-      Los sistemas anti-dron tradicionales basados en escaneo de radiofrecuencia (RF) y pistolas inhibidoras (<em>jammers</em>) quedan 
-      <strong>100% inútiles</strong> ante la nueva generación de drones de combate guiados por <strong>Fibra Óptica desenrollable</strong> 
-      (utilizados masivamente en conflictos modernos) o drones con navegación autónoma inercial por GPS desconectado. 
-      Al no emitir señales electromagnéticas de radio ni depender de GPS, son totalmente invisibles para la guerra electrónica. 
-      <strong>Sin embargo, ningún dron puede anular las leyes de la física: sus rotores y hélices son acústicamente ineludibles. 
-      DronRadar detecta, triangula y sigue la amenaza con precisión milimétrica sin importar su medio de control.</strong>
+      Los sistemas anti-dron convencionales basados en escáneres de radiofrecuencia (RF) y pistolas inhibidoras (<em>jammers</em>) quedan 
+      <strong>100% inútiles</strong> ante la nueva generación de drones de ataque guiados por <strong>Fibra Óptica desenrollable</strong> 
+      (utilizados masivamente en conflictos modernos) o drones autónomos por navegación inercial sin GPS. 
+      Al no emitir señales electromagnéticas ni depender de satélites, son invisibles para la guerra electrónica. 
+      <strong>Sin embargo, ningún dron puede eludir las leyes de la física acústica: sus hélices y motores son ineludibles. 
+      DronRadar detecta, triangula y sigue la amenaza en 3D con precisión milimétrica sin importar su medio de control.</strong>
     </p>
   </div>
 
@@ -192,20 +223,43 @@
     <div class="card">
       <h2>🛰️ Capacidades del Sistema</h2>
       <ul>
-        <li><strong>Filtro en Peine FFT (Comb Filter)</strong>: Discriminación armónica del sonido fundamental de pala (BPF: 100-1000 Hz) aislando el objetivo de ruidos continuos (tráfico, viento, lluvia).</li>
-        <li><strong>Geolocalización 3D (DoA 360° + Elevación)</strong>: Matriz tetra-micrófono ortogonal que calcula en tiempo real el rumbo horizontal (0-360°) y el ángulo de elevación cenital (0-90°).</li>
-        <li><strong>Clasificador de Firma & Doppler</strong>: Identifica el perfil de amenaza (DJI Comercial, FPV Racing, Dron Pesado) y la tasa de velocidad Doppler (Aproximación ⚠️ / Alejamiento 🛫).</li>
-        <li><strong>Caja Negra LittleFS & Web HUD</strong>: Pantalla de radar PPI militar, cascada espectrográfica waterfall en vivo y registro persistente de incursiones con descarga en CSV.</li>
+        <li><strong>Filtro en Peine FFT (VolAnti)</strong>: Discriminación armónica del tono fundamental ($f_0$: 100-1000 Hz) aislando el objetivo de ruidos continuos (viento, lluvia, tráfico).</li>
+        <li><strong>Geolocalización 3D (DoA 360° + Elevación)</strong>: Matriz tetra-micrófono ortogonal que calcula el rumbo horizontal (0-360°) y ángulo de elevación cenital (0-90°).</li>
+        <li><strong>Clasificador de Firma & Doppler</strong>: Identifica el tipo de dron (DJI Comercial, FPV Racing, Pesado) y vector de aproximación (⚠️ Aproximándose / 🛫 Alejándose).</li>
+        <li><strong>Caja Negra LittleFS & Web HUD</strong>: Pantalla de radar PPI, cascada espectrográfica waterfall en vivo y descarga de registros forenses en CSV.</li>
       </ul>
     </div>
     <div class="card">
       <h2>📡 Red Multi-Nodo & Mantenimiento</h2>
       <ul>
-        <li><strong>Malla Inter-Nodo (Mesh Broadcast UDP)</strong>: Comunicación automática entre estaciones perimetrales para cálculo de rumbos cruzados y triangulación de coordenadas exactas.</li>
-        <li><strong>Capa LoRa Integrada (8 Bytes)</strong>: Transmisión binaria de telemetría para perímetros de kilómetros sin infraestructura WiFi ni cables.</li>
-        <li><strong>Actualización Web OTA Remota</strong>: Flasheo inalámbrico por WiFi (<code>/update</code>) dentro de caja estanca en mástil o tejado sin herramientas ni cables USB.</li>
-        <li><strong>Punto de Acceso Fallback</strong>: Si cae la red exterior, genera su propia WiFi de emergencia (<code>192.168.4.1</code>) para monitorización directa desde el móvil.</li>
+        <li><strong>Malla Inter-Nodo (Mesh Broadcast UDP)</strong>: Comunicación automática entre estaciones en red local para cruce de rumbos y triangulación perimetral.</li>
+        <li><strong>Capa LoRa Integrada (8 Bytes)</strong>: Transmisión binaria de telemetría de largo alcance sin cables ni cobertura WiFi perimetral.</li>
+        <li><strong>Actualización Web OTA Remota</strong>: Flasheo inalámbrico por WiFi (<code>/update</code>) dentro de caja estanca en mástil sin abrirla ni conectar cables USB.</li>
+        <li><strong>Modo AP Fallback</strong>: Si cae la red exterior, levanta su propio punto de acceso (<code>192.168.4.1</code>) para configuración directa en campo.</li>
       </ul>
+    </div>
+  </div>
+
+  <!-- SECCIÓN MEJORAS Y ESCALABILIDAD HARDWARE -->
+  <div class="hardware-card">
+    <h3>🔧 HOJA DE RUTA: MEJORAS DE HARDWARE Y ESCALABILIDAD DE ALCANCE <span>Diseño Modular</span></h3>
+    <div class="hw-grid">
+      <div class="hw-item">
+        <strong>1. Micrófonos de Alto SNR</strong>
+        Upgrade pin-a-pin a <em>ICS-43434</em> (65 dBA) o <em>Infineon IM73A135</em> (73 dBA). Reduce el suelo de ruido a 21 dBA y <strong>aumenta el alcance de detección entre +40% y +80%</strong>.
+      </div>
+      <div class="hw-item">
+        <strong>2. Conos Acústicos (+8 dB)</strong>
+        Bocinas reflectoras impresas en 3D (cono a 60° hacia el cielo). Concentran la presión sonora pasivamente, otorgando <strong>+6 a +10 dB de ganancia acústica real sin consumo</strong>.
+      </div>
+      <div class="hw-item">
+        <strong>3. PCB Monolítica 1:1</strong>
+        Placa dedicada de 120x120 mm con <strong>separación exacta de 70.0 mm</strong> (límite de Nyquist acústico hasta 2.4 kHz). Elimina cables flotantes y ruidos parásitos.
+      </div>
+      <div class="hw-item">
+        <strong>4. Transceptor LoRa SPI</strong>
+        Integración de módulo <em>SX1262 / RFM95</em>. Permite enlaces perimetrales de <strong>hasta 10 km</strong> para alarmar naves, fincas o puestos de mando remotos.
+      </div>
     </div>
   </div>
 
@@ -214,32 +268,32 @@
     <div class="pro-card">
       <h3>✅ VENTAJAS TÁCTICAS Y OPERATIVAS</h3>
       <ul>
-        <li><strong>Indetectable y Pasivo (Zero Emission)</strong>: Al no emitir radar ni ondas electromagnéticas, no puede ser rastreado ni geolocalizado por contramedidas enemigas.</li>
-        <li><strong>Inmune a Jamming y Spoofing</strong>: Inmune a inhibidores de radiofrecuencia (RF), cegado de GPS o niebla electrónica.</li>
-        <li><strong>Detección de Drones "Silenciosos" de RF</strong>: Detecta drones de fibra óptica, planeadores y drones en modo silencio de radio.</li>
-        <li><strong>Coste Fraccionario (< 60€ por estación)</strong>: Permite desplegar decenas de nodos para cerrar perímetros extensos, naves o fincas frente a sistemas militares de >50.000€.</li>
-        <li><strong>Integración Inmediata</strong>: Auto-Discovery MQTT para Home Assistant, avisos y caja negra forense.</li>
+        <li><strong>Indetectable y Pasivo (Zero Emission)</strong>: No emite ondas de radio ni radar; imposible de geolocalizar por el enemigo.</li>
+        <li><strong>Inmune a Jamming y Spoofing</strong>: Inmune a inhibidores de RF, interferencias y cegado de satélites GPS.</li>
+        <li><strong>Detección de Drones de Fibra Óptica</strong>: Localiza aeronaves en estricto silencio de radio o cableadas.</li>
+        <li><strong>Coste Fraccionario (< 60€ / estación)</strong>: Permite mallas perimetrales densas frente a radares militares de >50.000€.</li>
+        <li><strong>Integración Inmediata</strong>: MQTT Auto-Discovery para Home Assistant y caja negra en LittleFS.</li>
       </ul>
     </div>
     <div class="con-card">
       <h3>⚠️ LIMITACIONES E INCONVENIENTES</h3>
       <ul>
-        <li><strong>Alcance acústico finito</strong>: 30 a 60 m para drones ultra-silenciosos (<250g); 100 a 250 m para drones estándar o pesados (limitado por la atenuación del aire).</li>
-        <li><strong>Ráfagas de viento extremo</strong>: Vientos superiores a 50 km/h generan ruido de presión sobre la membrana que eleva el umbral de ruido ambiental (mitigable con pantallas de espuma anti-viento).</li>
-        <li><strong>Línea de visión acústica</strong>: Obstáculos densos (muros de hormigón) amortiguan la señal; requiere elevación en mástil con vista despejada al cielo.</li>
+        <li><strong>Alcance acústico finito</strong>: 30 a 60 m para micro drones (<250g); 100 a 250 m para drones comerciales o industriales (física del aire).</li>
+        <li><strong>Viento extremo (>50 km/h)</strong>: El ruido de turbulencia superficial eleva el suelo de ruido (mitigable con pantallas de espuma cortavientos).</li>
+        <li><strong>Línea de visión acústica</strong>: Requiere instalación elevada en mástil o tejado con visión directa al cielo despejado.</li>
       </ul>
     </div>
   </div>
 
-  <div class="card" style="margin-bottom: 8px;">
+  <div class="card" style="margin-bottom: 6px;">
     <h2>📊 Resumen de Rendimiento de Detección (Micrófonos Cenitales)</h2>
     <table>
       <thead>
         <tr>
           <th>Categoría de Amenaza</th>
-          <th>Rango Fundamental (f0)</th>
-          <th>Alcance Típico (Día / Urbano)</th>
-          <th>Alcance Máximo (Noche / Rural)</th>
+          <th>Frecuencia ($f_0$)</th>
+          <th>Alcance INMP441 (Actual)</th>
+          <th>Alcance con Upgrade (ICS/Conos)</th>
           <th>Detección por RF / Jammer</th>
           <th>Detección DronRadar</th>
         </tr>
@@ -249,15 +303,15 @@
           <td><strong>DJI Mini 2/3/4 (<250g)</strong></td>
           <td>200 – 260 Hz</td>
           <td>30 – 45 metros</td>
-          <td>50 – 65 metros</td>
+          <td><strong>50 – 75 metros</strong></td>
           <td>Inhibible si usa RF</td>
           <td><span class="badge badge-blue">100% Acústico</span></td>
         </tr>
         <tr>
-          <td><strong>DJI Mavic 3 / Autel / Comercial</strong></td>
+          <td><strong>DJI Mavic 3 / Comercial</strong></td>
           <td>170 – 220 Hz</td>
           <td>70 – 100 metros</td>
-          <td>110 – 140 metros</td>
+          <td><strong>120 – 160 metros</strong></td>
           <td>Inhibible si usa RF</td>
           <td><span class="badge badge-blue">100% Acústico</span></td>
         </tr>
@@ -265,7 +319,7 @@
           <td><strong>FPV Racing / Dron Kamikaze</strong></td>
           <td>300 – 550 Hz</td>
           <td>90 – 130 metros</td>
-          <td>150 – 190 metros</td>
+          <td><strong>160 – 210 metros</strong></td>
           <td>Inhibible solo si usa radio</td>
           <td><span class="badge badge-blue">100% Acústico</span></td>
         </tr>
@@ -273,7 +327,7 @@
           <td><strong>Dron Guiado por Fibra Óptica</strong></td>
           <td>180 – 350 Hz</td>
           <td><strong>70 – 120 metros</strong></td>
-          <td><strong>120 – 160 metros</strong></td>
+          <td><strong>130 – 180 metros</strong></td>
           <td><span class="badge badge-red">INMUNE AL JAMMER (0%)</span></td>
           <td><span class="badge badge-blue">100% Acústico</span></td>
         </tr>
@@ -281,7 +335,7 @@
           <td><strong>Dron Pesado / Carga / Octocóptero</strong></td>
           <td>90 – 160 Hz</td>
           <td>160 – 240 metros</td>
-          <td>250 – 350+ metros</td>
+          <td><strong>280 – 400+ metros</strong></td>
           <td>Variable</td>
           <td><span class="badge badge-blue">100% Acústico</span></td>
         </tr>

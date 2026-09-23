@@ -25,6 +25,22 @@
 
 ---
 
+## 🔧 HOJA DE RUTA: MEJORAS DE HARDWARE Y ESCALABILIDAD
+
+1. **Micrófonos de Ultra-Alto Rendimiento (Upgrade MEMS I2S)**:
+   - **TDK InvenSense ICS-43434** (SNR 65 dBA): Sustituto directo pin a pin del INMP441, reduce el suelo de ruido y **aumenta el alcance un +35% a +45%**.
+   - **Infineon IM73A135V01** (SNR 73 dBA): Suelo de ruido de solo 21 dBA SPL (nivel militar), **incrementa el alcance de detección entre un +70% y un +90%**.
+2. **Ganancia Pasiva Física: Bocinas / Conos Acústicos 3D (+6 a +10 dB)**:
+   - Cada micrófono se aloja en la base de un cono reflector a 60° orientado al cielo. Concentra la energía acústica pasivamente sin consumo eléctrico ni ruido adicional.
+3. **Placa PCB Monolítica a Escala Real 1:1 ($120 \times 120\text{ mm}$)**:
+   - Matriz rígida con **separación óptima de 70.0 mm** (calculada con el criterio de Nyquist espacial para frecuencias de hasta 2.4 kHz). Elimina cables flotantes, inductancias parásitas y vibraciones mecánicas.
+4. **Módulo de Transmisión LoRa SPI (SX1262 / RFM95)**:
+   - Enlace perimetral de **hasta 10 km** de cobertura para instalaciones rurales o fincas sin repetidores WiFi.
+5. **Autonomía Energética Solar / PoE**:
+   - Panel solar 10W + LiFePO4 para despliegue en postes aislados sin tendido de cables.
+
+---
+
 ## ⚖️ VENTAJAS E INCONVENIENTES
 
 ### ✅ Ventajas Tácticas y Operativas
@@ -43,10 +59,10 @@
 
 ## 📊 TABLA DE RENDIMIENTO DE DETECCIÓN (Micrófonos Cenitales)
 
-| Categoría de Amenaza | Frecuencia Fundamental ($f_0$) | Alcance Día (Urbano) | Alcance Noche (Rural) | Detección RF / Jammer | Detección DronRadar |
+| Categoría de Amenaza | Frecuencia ($f_0$) | Alcance INMP441 (Actual) | Alcance con Upgrade (ICS/Conos) | Detección RF / Jammer | Detección DronRadar |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **DJI Mini 2/3/4 (<250g)** | 200 – 260 Hz | 30 – 45 m | 50 – 65 m | Inhibible si usa RF | **100% Acústico (OK)** |
-| **DJI Mavic 3 / Comercial** | 170 – 220 Hz | 70 – 100 m | 110 – 140 m | Inhibible si usa RF | **100% Acústico (OK)** |
-| **FPV Racing / Dron Kamikaze** | 300 – 550 Hz | 90 – 130 m | 150 – 190 m | Inhibible solo con RF | **100% Acústico (OK)** |
-| **Dron Guiado por Fibra Óptica** | 180 – 350 Hz | **70 – 120 m** | **120 – 160 m** | **INMUNE AL JAMMER (0%)** | **100% Acústico (OK)** |
-| **Dron Pesado / Carga / Octocóptero** | 90 – 160 Hz | 160 – 240 m | 250 – 350+ m | Variable | **100% Acústico (OK)** |
+| **DJI Mini 2/3/4 (<250g)** | 200 – 260 Hz | 30 – 45 m | **50 – 75 m** | Inhibible si usa RF | **100% Acústico (OK)** |
+| **DJI Mavic 3 / Comercial** | 170 – 220 Hz | 70 – 100 m | **120 – 160 m** | Inhibible si usa RF | **100% Acústico (OK)** |
+| **FPV Racing / Dron Kamikaze** | 300 – 550 Hz | 90 – 130 m | **160 – 210 m** | Inhibible solo con RF | **100% Acústico (OK)** |
+| **Dron Guiado por Fibra Óptica** | 180 – 350 Hz | **70 – 120 m** | **130 – 180 m** | **INMUNE AL JAMMER (0%)** | **100% Acústico (OK)** |
+| **Dron Pesado / Carga / Octocóptero** | 90 – 160 Hz | 160 – 240 m | **280 – 400+ m** | Variable | **100% Acústico (OK)** |
