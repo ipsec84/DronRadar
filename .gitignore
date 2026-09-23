@@ -1,0 +1,40 @@
+# PlatformIO Build & Cache
+.pio/
+*/.pio/
+.pioenvs/
+.piolibdeps/
+.clang_complete
+.gcc-flags.json
+
+# IDEs & Editors
+.vscode/
+*/.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Private Credentials & Network Keys
+wifi_credentials.h
+**/wifi_credentials.h
+wifi_credentials.json
+**/wifi_credentials.json
+!wifi_credentials.h.example
+!**/wifi_credentials.h.example
+!wifi_credentials.json.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv/
+env/
+venv/
+
+# OS Artifacts
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*.bak
+*~
