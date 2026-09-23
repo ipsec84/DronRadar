@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>DronRadar - Dossier Técnico y Presentación Ejecutiva A4</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm 12mm 15mm;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    color: #1a202c;
+    background: #fff;
+    font-size: 9.5pt;
+    line-height: 1.38;
+  }
+  .page {
+    width: 100%;
+    max-width: 210mm;
+    margin: 0 auto;
+  }
+  header {
+    border-bottom: 2.5px solid #0f172a;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .title-block h1 {
+    margin: 0;
+    font-size: 19pt;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #0f172a;
+    text-transform: uppercase;
+  }
+  .title-block .subtitle {
+    margin: 2px 0 0 0;
+    font-size: 9.5pt;
+    font-weight: 600;
+    color: #2563eb;
+  }
+  .meta-block {
+    text-align: right;
+    font-size: 8pt;
+    color: #64748b;
+  }
+  .alert-box {
+    background: #f8fafc;
+    border: 1.5px solid #dc2626;
+    border-left-width: 5px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .alert-box h3 {
+    margin: 0 0 3px 0;
+    font-size: 10pt;
+    color: #b91c1c;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .alert-box p {
+    margin: 0;
+    font-size: 8.8pt;
+    color: #334155;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px;
+  }
+  .card h2 {
+    margin: 0 0 6px 0;
+    font-size: 10pt;
+    color: #0f172a;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 4px;
+    text-transform: uppercase;
+  }
+  ul {
+    margin: 0;
+    padding-left: 16px;
+  }
+  li {
+    margin-bottom: 4px;
+  }
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .pro-card {
+    border: 1.5px solid #16a34a;
+    background: #f0fdf4;
+    border-radius: 6px;
+    padding: 9px 11px;
+  }
+  .pro-card h3 {
+    margin: 0 0 6px 0;
+    font-size: 9.5pt;
+    color: #15803d;
+  }
+  .con-card {
+    border: 1.5px solid #ea580c;
+    background: #fff7ed;
+    border-radius: 6px;
+    padding: 9px 11px;
+  }
+  .con-card h3 {
+    margin: 0 0 6px 0;
+    font-size: 9.5pt;
+    color: #c2410c;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.2pt;
+    margin-top: 4px;
+  }
+  th, td {
+    padding: 4px 6px;
+    border: 1px solid #cbd5e1;
+    text-align: left;
+  }
+  th {
+    background: #f1f5f9;
+    color: #334155;
+  }
+  footer {
+    border-top: 1px solid #cbd5e1;
+    padding-top: 6px;
+    margin-top: 8px;
+    font-size: 7.5pt;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+  .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 7.5pt;
+  }
+  .badge-red { background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; }
+  .badge-blue { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="title-block">
+      <h1>DRONRADAR SENTRY</h1>
+      <div class="subtitle">Sistema Autónomo de Detección, Clasificación y Geolocalización Acústica 3D de UAVs</div>
+    </div>
+    <div class="meta-block">
+      <strong>Clasificación:</strong> DOCUMENTO TÉCNICO A4<br>
+      <strong>Plataforma:</strong> ESP32-S3 + Matriz 4x I2S<br>
+      <strong>Estado:</strong> OPERATIVO v2.1
+    </div>
+  </header>
+
+  <!-- DIFERENCIADOR CLAVE: DRONES POR FIBRA ÓPTICA Y SIN RF -->
+  <div class="alert-box">
+    <h3>🚨 EL FACTOR DECISIVO: DRONES INMUNES A INHIBIDORES (FIBRA ÓPTICA Y VUELO AUTÓNOMO)</h3>
+    <p>
+      Los sistemas anti-dron tradicionales basados en escaneo de radiofrecuencia (RF) y pistolas inhibidoras (<em>jammers</em>) quedan 
+      <strong>100% inútiles</strong> ante la nueva generación de drones de combate guiados por <strong>Fibra Óptica desenrollable</strong> 
+      (utilizados masivamente en conflictos modernos) o drones con navegación autónoma inercial por GPS desconectado. 
+      Al no emitir señales electromagnéticas de radio ni depender de GPS, son totalmente invisibles para la guerra electrónica. 
+      <strong>Sin embargo, ningún dron puede anular las leyes de la física: sus rotores y hélices son acústicamente ineludibles. 
+      DronRadar detecta, triangula y sigue la amenaza con precisión milimétrica sin importar su medio de control.</strong>
+    </p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2>🛰️ Capacidades del Sistema</h2>
+      <ul>
+        <li><strong>Filtro en Peine FFT (Comb Filter)</strong>: Discriminación armónica del sonido fundamental de pala (BPF: 100-1000 Hz) aislando el objetivo de ruidos continuos (tráfico, viento, lluvia).</li>
+        <li><strong>Geolocalización 3D (DoA 360° + Elevación)</strong>: Matriz tetra-micrófono ortogonal que calcula en tiempo real el rumbo horizontal (0-360°) y el ángulo de elevación cenital (0-90°).</li>
+        <li><strong>Clasificador de Firma & Doppler</strong>: Identifica el perfil de amenaza (DJI Comercial, FPV Racing, Dron Pesado) y la tasa de velocidad Doppler (Aproximación ⚠️ / Alejamiento 🛫).</li>
+        <li><strong>Caja Negra LittleFS & Web HUD</strong>: Pantalla de radar PPI militar, cascada espectrográfica waterfall en vivo y registro persistente de incursiones con descarga en CSV.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>📡 Red Multi-Nodo & Mantenimiento</h2>
+      <ul>
+        <li><strong>Malla Inter-Nodo (Mesh Broadcast UDP)</strong>: Comunicación automática entre estaciones perimetrales para cálculo de rumbos cruzados y triangulación de coordenadas exactas.</li>
+        <li><strong>Capa LoRa Integrada (8 Bytes)</strong>: Transmisión binaria de telemetría para perímetros de kilómetros sin infraestructura WiFi ni cables.</li>
+        <li><strong>Actualización Web OTA Remota</strong>: Flasheo inalámbrico por WiFi (<code>/update</code>) dentro de caja estanca en mástil o tejado sin herramientas ni cables USB.</li>
+        <li><strong>Punto de Acceso Fallback</strong>: Si cae la red exterior, genera su propia WiFi de emergencia (<code>192.168.4.1</code>) para monitorización directa desde el móvil.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- COMPARATIVA DE VENTAJAS E INCONVENIENTES -->
+  <div class="pros-cons">
+    <div class="pro-card">
+      <h3>✅ VENTAJAS TÁCTICAS Y OPERATIVAS</h3>
+      <ul>
+        <li><strong>Indetectable y Pasivo (Zero Emission)</strong>: Al no emitir radar ni ondas electromagnéticas, no puede ser rastreado ni geolocalizado por contramedidas enemigas.</li>
+        <li><strong>Inmune a Jamming y Spoofing</strong>: Inmune a inhibidores de radiofrecuencia (RF), cegado de GPS o niebla electrónica.</li>
+        <li><strong>Detección de Drones "Silenciosos" de RF</strong>: Detecta drones de fibra óptica, planeadores y drones en modo silencio de radio.</li>
+        <li><strong>Coste Fraccionario (< 60€ por estación)</strong>: Permite desplegar decenas de nodos para cerrar perímetros extensos, naves o fincas frente a sistemas militares de >50.000€.</li>
+        <li><strong>Integración Inmediata</strong>: Auto-Discovery MQTT para Home Assistant, avisos y caja negra forense.</li>
+      </ul>
+    </div>
+    <div class="con-card">
+      <h3>⚠️ LIMITACIONES E INCONVENIENTES</h3>
+      <ul>
+        <li><strong>Alcance acústico finito</strong>: 30 a 60 m para drones ultra-silenciosos (<250g); 100 a 250 m para drones estándar o pesados (limitado por la atenuación del aire).</li>
+        <li><strong>Ráfagas de viento extremo</strong>: Vientos superiores a 50 km/h generan ruido de presión sobre la membrana que eleva el umbral de ruido ambiental (mitigable con pantallas de espuma anti-viento).</li>
+        <li><strong>Línea de visión acústica</strong>: Obstáculos densos (muros de hormigón) amortiguan la señal; requiere elevación en mástil con vista despejada al cielo.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom: 8px;">
+    <h2>📊 Resumen de Rendimiento de Detección (Micrófonos Cenitales)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Categoría de Amenaza</th>
+          <th>Rango Fundamental (f0)</th>
+          <th>Alcance Típico (Día / Urbano)</th>
+          <th>Alcance Máximo (Noche / Rural)</th>
+          <th>Detección por RF / Jammer</th>
+          <th>Detección DronRadar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>DJI Mini 2/3/4 (<250g)</strong></td>
+          <td>200 – 260 Hz</td>
+          <td>30 – 45 metros</td>
+          <td>50 – 65 metros</td>
+          <td>Inhibible si usa RF</td>
+          <td><span class="badge badge-blue">100% Acústico</span></td>
+        </tr>
+        <tr>
+          <td><strong>DJI Mavic 3 / Autel / Comercial</strong></td>
+          <td>170 – 220 Hz</td>
+          <td>70 – 100 metros</td>
+          <td>110 – 140 metros</td>
+          <td>Inhibible si usa RF</td>
+          <td><span class="badge badge-blue">100% Acústico</span></td>
+        </tr>
+        <tr>
+          <td><strong>FPV Racing / Dron Kamikaze</strong></td>
+          <td>300 – 550 Hz</td>
+          <td>90 – 130 metros</td>
+          <td>150 – 190 metros</td>
+          <td>Inhibible solo si usa radio</td>
+          <td><span class="badge badge-blue">100% Acústico</span></td>
+        </tr>
+        <tr>
+          <td><strong>Dron Guiado por Fibra Óptica</strong></td>
+          <td>180 – 350 Hz</td>
+          <td><strong>70 – 120 metros</strong></td>
+          <td><strong>120 – 160 metros</strong></td>
+          <td><span class="badge badge-red">INMUNE AL JAMMER (0%)</span></td>
+          <td><span class="badge badge-blue">100% Acústico</span></td>
+        </tr>
+        <tr>
+          <td><strong>Dron Pesado / Carga / Octocóptero</strong></td>
+          <td>90 – 160 Hz</td>
+          <td>160 – 240 metros</td>
+          <td>250 – 350+ metros</td>
+          <td>Variable</td>
+          <td><span class="badge badge-blue">100% Acústico</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>DronRadar Security Systems &copy; 2026 | Documento de Especificación de Producto</span>
+    <span>Preparado para: Alberto G. (ipsec84) | Configuración para Caja Estanca IP67</span>
+  </footer>
+</div>
+</body>
+</html>
