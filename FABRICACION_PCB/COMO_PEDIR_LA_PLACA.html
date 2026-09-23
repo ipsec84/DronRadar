@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Instrucciones de Fabricación PCB - DronRadar</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 30px 20px;
+    }
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 40px;
+      border: 1px solid #e2e8f0;
+    }
+    h1 {
+      color: #0f172a;
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 12px;
+      margin-top: 0;
+      font-size: 26px;
+    }
+    h2 {
+      color: #1e3a8a;
+      margin-top: 28px;
+      font-size: 20px;
+      border-left: 4px solid #3b82f6;
+      padding-left: 10px;
+    }
+    .badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .card {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 16px 0;
+      border: 1px solid #cbd5e1;
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .btn {
+      display: inline-block;
+      background: #2563eb;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    .btn:hover {
+      background: #1d4ed8;
+    }
+    .step {
+      display: flex;
+      margin-bottom: 16px;
+    }
+    .step-number {
+      background: #3b82f6;
+      color: white;
+      font-weight: bold;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 14px;
+      flex-shrink: 0;
+    }
+    .step-body {
+      flex: 1;
+    }
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    code {
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <span class="badge">DronRadar Hardware</span>
+  <h1>Cómo Mandar a Fabricar la Placa con los Circuitos Impresos</h1>
+  
+  <p>Para encargar la placa física con todas las <strong>pistas de cobre ya grabadas, barniz aislante y pads listos para soldar los componentes</strong>, no necesitas diseñar nada desde cero: se envía un archivo comprimido estándar denominado <strong>Gerber (RS-274X)</strong>.</p>
+
+  <div class="card">
+    <div class="card-title">📦 Tus archivos de fabricación ya están listos en:</div>
+    <code>DRONRADAR\FABRICACION_PCB\</code>
+    <ul>
+      <li><strong><code>VolAnti_revA2_gerbers.zip</code></strong> &rarr; <strong>El archivo que se sube a la fábrica</strong> (4 capas de cobre, taladros de precisión, pads para micros y ESP32).</li>
+      <li><strong><code>bom.csv</code></strong> &rarr; Lista de componentes originales con referencias de stock.</li>
+      <li><strong><code>pick-and-place.csv</code></strong> &rarr; Coordenadas espaciales para montaje robótico opcional.</li>
+    </ul>
+  </div>
+
+  <h2>Paso a Paso para Pedirla en JLCPCB (Web Oficial)</h2>
+
+  <div class="step">
+    <div class="step-number">1</div>
+    <div class="step-body">
+      <strong>Entra en la web del fabricante:</strong><br>
+      Abre <a href="https://jlcpcb.com" target="_blank"><strong>JLCPCB.com</strong></a> (es el fabricante más utilizado del mundo en electrónica open-hardware).
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">2</div>
+    <div class="step-body">
+      <strong>Arrastra el archivo ZIP:</strong><br>
+      Haz clic en el botón azul <strong>"Add Gerber file"</strong> y selecciona tu archivo:
+      <br><code>FABRICACION_PCB\VolAnti_revA2_gerbers.zip</code>.
+      <br>En 5 segundos se cargará un visor interactivo en 3D mostrándote la placa real terminada.
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">3</div>
+    <div class="step-body">
+      <strong>Verifica las opciones de fabricación:</strong>
+      <ul>
+        <li><strong>Dimensions:</strong> 84 × 84 mm (se rellena solo).</li>
+        <li><strong>Layers:</strong> 4 capas (se selecciona automáticamente).</li>
+        <li><strong>Quantity:</strong> 5 unidades (el pedido mínimo, cuesta ~4 a 6 €).</li>
+        <li><strong>PCB Color:</strong> Elige el color que prefieras (Verde clásico, Negro mate, Azul, etc.).</li>
+        <li><strong>Surface Finish:</strong> Selecciona <em>Lead-free HASL</em> (económico) o <em>ENIG</em> (bañado en oro, recomendado para micrófonos).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>¿Prefieres soldar tú o que te lo monten?</h2>
+
+  <div class="card" style="border-left: 4px solid #10b981;">
+    <div class="card-title">Opción A: Solo la placa virgen (Tú sueldas los componentes)</div>
+    <p>Deja la casilla <strong>"PCB Assembly" desactivada</strong> y añade el pedido al carrito.</p>
+    <p>Te enviarán a tu domicilio 5 placas de circuito impreso con todas las pistas de cobre grabadas, perforaciones y pads listos para recibir estaño.</p>
+  </div>
+
+  <div class="warning">
+    <strong>⚠️ Importante sobre soldar los micrófonos a mano:</strong><br>
+    Los micrófonos MEMS del diseño integrado van soldados en superficie con orificio inferior (bottom-port). Para soldarlos a mano se requiere estaño en pasta y una tobera de aire caliente o plancha calefactora para no taponar el orificio acústico del micro con la punta del soldador tradicional.
+  </div>
+
+  <div class="card" style="border-left: 4px solid #3b82f6;">
+    <div class="card-title">Opción B: Ensamblaje SMT por Robots (La fábrica suelda los componentes)</div>
+    <p>Si activas la casilla <strong>"PCB Assembly"</strong> y adjuntas <code>bom.csv</code> y <code>pick-and-place.csv</code>, las máquinas de la fábrica colocarán y soldarán el chip ESP32-S3, los 4 micrófonos MEMS y los reguladores con precisión milimétrica por unos 25-35€ en total.</p>
+  </div>
+
+</div>
+
+</body>
+</html>
