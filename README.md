@@ -1,21 +1,28 @@
 # 🛰️ DronRadar - Detector Acústico de Drones (ESP32-S3 + VolAnti)
 
-**DronRadar** es un sistema autónomo de detección acústica, clasificación y localización angular en 360° (DoA) de vehículos aéreos no tripulados (UAV / Drones) basado en el microcontrolador **ESP32-S3** con matriz de **4 micrófonos I2S (INMP441)** y el algoritmo de filtro en peine FFT de **VolAnti**.
+**DronRadar** es un sistema autónomo de detección acústica, clasificación y localización tridimensional (DoA 3D: Azimut 360° + Elevación) de vehículos aéreos no tripulados (UAV / Drones) basado en el microcontrolador **ESP32-S3** con matriz de **4 micrófonos I2S (INMP441)** y el algoritmo de filtro en peine FFT de **VolAnti**.
 
-El sistema funciona de forma 100% local, embebida y en tiempo real, ofreciendo una interfaz Web militar tipo HUD (Radar PPI + Espectrograma en Cascada), caja negra de incursiones persistente en LittleFS, integración con Home Assistant (MQTT) y sincronización de hora local sin requerir conexión a Internet.
+Diseñado para despliegue en exteriores dentro de cajas estancas (mástiles y tejados), incluye **actualización remota de firmware por WiFi (Web OTA)**, **interconexión en malla multi-nodo**, **capa preparada para radio LoRa** y un panel web militar táctico en tiempo real.
 
 ---
 
 ## ⚡ Características Principales
 
 - **Algoritmo FFT Comb Filter (VolAnti)**: Detección armónica de frecuencia fundamental ($f_0$) y sobretonos de palas de rotor en rangos de 100 Hz a 1000 Hz.
+- **Localización Acústica 3D (DoA 360° + Elevación)**:
+  - Estimación de azimut horizontal mediante desfase ortogonal ($M_1-M_2$ en eje X, $M_3-M_4$ en eje Y).
+  - Estimación del ángulo de elevación vertical ($0^\circ - 90^\circ$) y nivel de altitud (*Baja / Rasante*, *Media Altitud*, *Cenital / Sobre la vertical*).
+- **Clasificador de Firma Espectral & Vector Doppler**:
+  - Identificación del perfil de dron (*DJI Mini/Mavic*, *FPV Racing/Freestyle*, *Dron Pesado/Octocóptero*).
+  - Cálculo de la derivada temporal $\Delta f_0 / \Delta t$ para alertar si la aeronave **se aproxima** ⚠️, **se aleja** 🛫 o se mantiene en **hover estático** ⏸️.
 - **Integrador de Confianza Temporal (Anti-Flicker)**: Filtro de persistencia temporal (0-100%) que acumula evidencia acústica continua, discriminando ráfagas transitorias de viento, tráfico o aves, y estabilizando el nivel de alerta (Tier 1 a 4).
-- **Radar Acústico DoA 360° (Direction of Arrival)**: Estimación de azimut mediante diferencias de fase entre pares ortogonales de micrófonos ($M_1-M_2$ en eje X, $M_3-M_4$ en eje Y).
+- **Mantenimiento Remoto Web OTA (`/update`)**: Actualización inalámbrica del firmware mediante drag & drop desde el navegador con barra de progreso y auto-reinicio, sin necesidad de abrir la caja estanca ni conectar cables.
+- **Red Multi-Nodo (WiFi Mesh Broadcast)**: Protocolo de telemetría inter-nodo en red local (UDP broadcast puerto 4210) que permite a múltiples radares descubrirse mutuamente y coordinar rumbos cruzados para triangulación perimetral.
+- **Predisposición para Radio LoRa (SX1262 / SX1276)**: Trama binaria ultra-compacta de 8 bytes con CRC-8 para enlaces de largo alcance y bajo consumo donde no haya cobertura WiFi.
+- **Modo WiFi Híbrido con AP de Emergencia**: Si la red WiFi exterior falla o no está disponible, el nodo levanta automáticamente su propio punto de acceso `DronRadar-<NodeID>` (IP `192.168.4.1`) para configuración directa en campo.
 - **Espectrograma en Cascada (Live Waterfall)**: Cascada de frecuencia en tiempo real (48 bins, canvas HTML5) que visualiza la firma acústica del dron.
 - **Caja Negra en LittleFS & Exportación CSV**: Registro histórico de incursiones con fecha, hora, azimut, frecuencia, umbral y duración persistido en memoria flash interna. Botón de descarga directa `informe_incursiones.csv`.
-- **Sincronización Horaria Local**: API `/api/set_time` que sincroniza el reloj interno del ESP32 con la hora del navegador cliente al conectarse, además de comando serie `T HH:MM:SS`.
-- **Seguimiento Dinámico del Suelo de Ruido (Auto Noise Floor)**: Umbral adaptativo calibrado automáticamente según el entorno acústico exterior.
-- **Integración IoT / Home Assistant**: Publicación de telemetría, eventos de intrusión y métricas por MQTT compatible con Home Assistant.
+- **Integración IoT / Home Assistant**: Publicación de telemetría y **Auto-Discovery MQTT** que crea automáticamente el dispositivo y sus sensores en Home Assistant.
 
 ---
 
@@ -25,7 +32,7 @@ El firmware utiliza **dos buses I2S independientes** en el ESP32-S3 para captura
 
 ![Esquema de Cableado ESP32-S3](docs/images/esquema_cableado_esp32s3.jpg)
 
-### Pinout ESP32-S3 DevKitC-1 N16R8
+### Pinout ESP32-S3 DevKitC-1 N8 / N16R8
 
 | Dispositivo / Función | Pin ESP32-S3 | Conexión / Detalle |
 | :--- | :--- | :--- |
@@ -39,6 +46,7 @@ El firmware utiliza **dos buses I2S independientes** en el ESP32-S3 para captura
 | SD (Serial Data) | **GPIO 9** | M3 L/R a GND (Left), M4 L/R a 3V3 (Right) |
 | **Alimentación Micrófonos** | **3.3V / GND** | Todos los VDD a 3.3V, todos los GND compartidos |
 | **LED RGB Direccionable** | **GPIO 16 / 48** | Indicador de estado de alerta |
+| **Interfaz SPI para Radio LoRa (SX1262)** | **GPIO 10 (CS), 14 (RST), 13 (DIO1)** | Enlace de largo alcance opcional |
 | **Pantalla e-Paper (Opcional)** | SPI | Waveshare 2.13" para estado autónomo |
 
 ---
@@ -57,11 +65,25 @@ Para instalaciones exteriores (mástiles, tejados, perímetros), los sensores ac
 
 ---
 
+## 📡 Protocolo LoRa & Trama Binaria Compacta (8 Bytes)
+
+Para enlaces sin WiFi perimetral, la estructura binaria optimizada minimiza el *AirTime* de emisión:
+
+```
++----------+----------+----------+----------+----------+----------+----------+----------+
+| Byte 0   | Byte 1   | Byte 2   | Byte 3   | Byte 4   | Byte 5   | Byte 6   | Byte 7   |
+| Magic    | NodeID   | Status   | Azimuth  | Elev     | Freq LSB | Freq MSB | CRC-8    |
+| (0xAA)   | (1-255)  | (Tier+D) | (Az / 2) | (0-90°)  | (f0 Hz)  | (f0 Hz)  | (Dallas) |
++----------+----------+----------+----------+----------+----------+----------+----------+
+```
+
+---
+
 ## 🚀 Instalación y Puesta en Marcha
 
 ### Requisitos
-- [PlatformIO](https://platformio.org/) (en VS Code o CLI)
-- ESP32-S3 DevKitC-1 (N16R8 recomendado)
+- [PlatformIO](https://platformio.org/)
+- ESP32-S3 DevKitC-1 (8MB Flash o superior)
 - 4x Micrófonos MEMS I2S INMP441
 
 ### 1. Clonar el repositorio
@@ -83,20 +105,16 @@ cd wifi_test
 pio run --target upload
 ```
 
-### 4. Acceder al Panel de Control Web
-Abre tu navegador en la IP asignada al ESP32 (visible en el monitor serie a 115200 baudios):
+### 4. Actualización Remota por Web OTA
+Una vez instalado el nodo en el mástil o caja estanca, puedes compilar una nueva versión:
+```bash
+pio run
+```
+Y subir el archivo generado `.pio/build/esp32s3/firmware.bin` directamente a través del navegador en:
 ```
 http://<IP_DEL_ESP32>/
 ```
-El panel sincronizará automáticamente la hora de tu navegador con el reloj del radar.
-
----
-
-## 🛠️ Herramientas de Monitorización
-
-En la carpeta raíz se incluyen scripts de soporte para depuración y calibración vía puerto serie:
-- `monitor_com6.py`: Monitor en tiempo real de métricas FFT, RMS por micrófono y estados de alerta.
-- `test_com6.py`: Verificación rápida de comunicación serie con el microcontrolador.
+en la sección **⚡ Mantenimiento Remoto & Web OTA**.
 
 ---
 

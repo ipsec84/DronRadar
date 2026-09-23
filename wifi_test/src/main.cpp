@@ -19,6 +19,11 @@ extern "C" {
 }
 
 #include "wifi_credentials.h"
+#include <Update.h>
+#include "drone_classifier.h"
+#include "doa_3d.h"
+#include "mesh_protocol.h"
+#include "lora_frame.h"
 
 // ============================================================================
 // CONFIGURACIÓN DE PINES HARDWARE (VolAnti / DevKitC-1)
@@ -91,9 +96,23 @@ bool wifiConnected = false;
 float currentConfidence = 0.0f; // 0.0 a 1.0 (0% a 100%)
 unsigned long lastEvidenceTime = 0;
 
-// Dirección de llegada acústica (DoA 360°)
+// Dirección de llegada acústica (DoA 360° y Elevación 3D)
 float currentAzimuth = 0.0f;
+float currentElevation = 0.0f;
+AltitudeCategory currentAltitudeCat = ALTITUDE_LOW;
 bool azimuthValid = false;
+
+// Clasificación de drones, Doppler y Malla
+DroneCategory currentDroneCat = DRONE_NONE;
+DopplerStatus currentDoppler = DOPPLER_STATIONARY;
+float currentDopplerRate = 0.0f;
+char nodeName[16] = "DR-01";
+bool isAPMode = false;
+
+DronRadarMesh mesh;
+LoRaTransceiverStub loraRadio;
+DopplerTracker dopplerTracker;
+
 #define DOA_SAMPLES 256
 static int16_t doa_buf_m1[DOA_SAMPLES];
 static int16_t doa_buf_m2[DOA_SAMPLES];
@@ -521,15 +540,33 @@ void micAudioTask(void *pvParameters) {
                     float cross_y_im = im3 * re4 - re3 * im4;
                     float phase_y = atan2f(cross_y_im, cross_y_re);
 
-                    float az_rad = atan2f(phase_x, phase_y);
-                    float az_deg = az_rad * (180.0f / (float)M_PI);
-                    if (az_deg < 0.0f) az_deg += 360.0f;
+                    DoA3DResult res3d = DoA3DEstimator::calculate(phase_x, phase_y, rec.f0_hz, 0.06f);
+                    if (res3d.isValid) {
+                        float diff = res3d.azimuthDeg - currentAzimuth;
+                        while (diff < -180.0f) diff += 360.0f;
+                        while (diff > 180.0f) diff -= 360.0f;
+                        currentAzimuth = fmodf(currentAzimuth + 0.20f * diff + 360.0f, 360.0f);
+                        currentElevation = currentElevation * 0.80f + res3d.elevationDeg * 0.20f;
+                        currentAltitudeCat = res3d.altitudeCat;
+                        azimuthValid = true;
+                    }
 
-                    float diff = az_deg - currentAzimuth;
-                    while (diff < -180.0f) diff += 360.0f;
-                    while (diff > 180.0f) diff -= 360.0f;
-                    currentAzimuth = fmodf(currentAzimuth + 0.20f * diff + 360.0f, 360.0f);
-                    azimuthValid = true;
+                    // Seguimiento Doppler de aproximación / alejamiento
+                    dopplerTracker.addSample(rec.f0_hz, millis());
+                    currentDoppler = dopplerTracker.evaluate(currentDopplerRate);
+                    currentDroneCat = DroneClassifier::classify(rec.f0_hz);
+
+                    // Preparar y emitir trama binaria LoRa (8 bytes)
+                    LoRaDronFrame lframe = LoRaFrameBuilder::build(
+                        1, 
+                        (uint8_t)currentTier, 
+                        (uint8_t)currentDroneCat, 
+                        (uint8_t)currentDoppler, 
+                        currentAzimuth, 
+                        currentElevation, 
+                        rec.f0_hz
+                    );
+                    loraRadio.transmitFrame(lframe);
                 }
 
                 bool shouldEndEvent = false;
@@ -802,7 +839,10 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
           </div>
           <div style="font-size: 0.75rem; color: #8b949e; margin-top: 5px;">Ponderación temporal continua: requiere consistencia armónica antes de disparar alerta.</div>
         </div>
-        <div class="status-row"><span>Rumbo Estimado (DoA):</span><strong id="radar-bearing" style="color: #58a6ff; font-size: 1.05rem;">--° (Sin objetivo)</strong></div>
+        <div class="status-row"><span>Rumbo Horizontal (Azimut):</span><strong id="radar-bearing" style="color: #58a6ff; font-size: 1.05rem;">--° (Sin objetivo)</strong></div>
+        <div class="status-row"><span>Elevación 3D y Altitud:</span><strong id="radar-elevation" style="color: #58a6ff; font-size: 1.05rem;">--° (Horizonte)</strong></div>
+        <div class="status-row"><span>Vector Doppler:</span><strong id="doppler-status" style="color: #388bfd;">Estático / Hover</strong></div>
+        <div class="status-row"><span>Firma Acústica / Tipo:</span><strong id="drone-class" style="color: #e3b341;">Ninguno</strong></div>
         <div class="status-row"><span>Suelo de Ruido Ambiental:</span><span id="noise-floor-lbl">0.70</span></div>
         <div class="status-row"><span>Modo de Umbral:</span><span id="thr-mode-lbl" style="font-weight: bold; color: #58a6ff;">Fijo</span></div>
       </div>
@@ -908,6 +948,73 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
           <tr><td colspan="6" style="text-align: center; padding: 16px; color: #8b949e;">Sin detecciones registradas aún</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Red Multi-Nodo & Enlace LoRa (Malla Perimetral) -->
+  <div class="card" style="margin-top: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+      <h2 style="margin: 0; font-size: 1.2rem; color: var(--text-bright);">🌐 Red Multi-Nodo & Telemetría LoRa</h2>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 0.85rem; color: #8b949e;">ID Nodo:</span>
+        <input type="text" id="node-id-input" value="DR-01" style="background: #21262d; border: 1px solid #30363d; color: #58a6ff; font-weight: bold; padding: 4px 8px; border-radius: 4px; width: 90px; text-align: center;">
+        <button class="btn" style="flex: 0; min-width: auto; padding: 4px 10px; font-size: 0.85rem; background: #238636; color: #fff;" onclick="saveNodeId()">Guardar</button>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px;">
+      <div class="card" style="background: #0d1117; padding: 12px;">
+        <div style="font-size: 0.8rem; color: #8b949e;">Canal Malla WiFi</div>
+        <div style="font-weight: bold; color: #58a6ff; margin-top: 4px;">UDP Broadcast (Puerto 4210)</div>
+      </div>
+      <div class="card" style="background: #0d1117; padding: 12px;">
+        <div style="font-size: 0.8rem; color: #8b949e;">Capa de Radio LoRa</div>
+        <div style="font-weight: bold; color: #00ff66; margin-top: 4px;">Trama Compacta 8B (SX1262 Ready)</div>
+      </div>
+      <div class="card" style="background: #0d1117; padding: 12px;">
+        <div style="font-size: 0.8rem; color: #8b949e;">Nodos Vecinos Activos</div>
+        <div style="font-weight: bold; color: #f0f6fc; margin-top: 4px;"><span id="mesh-peer-count">0</span> detectados</div>
+      </div>
+    </div>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="mesh-table">
+        <thead>
+          <tr style="border-bottom: 2px solid #30363d; text-align: left; color: #8b949e;">
+            <th style="padding: 6px;">Nodo</th>
+            <th style="padding: 6px;">Alerta</th>
+            <th style="padding: 6px;">Confianza</th>
+            <th style="padding: 6px;">Azimut</th>
+            <th style="padding: 6px;">Elevación</th>
+            <th style="padding: 6px;">Clase Dron</th>
+            <th style="padding: 6px;">Doppler</th>
+            <th style="padding: 6px;">IP / Hace</th>
+          </tr>
+        </thead>
+        <tbody id="mesh-body">
+          <tr><td colspan="8" style="text-align: center; padding: 12px; color: #8b949e;">Escuchando balizas de otros nodos DronRadar en la red...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Actualización Inalámbrica de Firmware (Web OTA) -->
+  <div class="card" style="margin-top: 20px; border-color: #388bfd;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
+      <h2 style="margin: 0; font-size: 1.2rem; color: #58a6ff;">⚡ Mantenimiento Remoto & Web OTA</h2>
+      <span style="font-size: 0.8rem; color: #8b949e;">Actualización en mástil / caja estanca</span>
+    </div>
+    <p style="font-size: 0.85rem; color: #8b949e; margin-top: 0;">Sube el binario compilado (<code>firmware.bin</code>) para flashear el ESP32-S3 de forma inalámbrica sin abrir la caja estanca.</p>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <input type="file" id="ota-file" accept=".bin" style="background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 8px; border-radius: 6px; flex: 1;">
+      <button class="btn" style="flex: 0; min-width: 180px; background: #1f6feb; color: #fff;" onclick="uploadFirmwareOTA()">🚀 Flashear por WiFi (OTA)</button>
+    </div>
+    <div id="ota-progress-box" style="display: none; margin-top: 12px;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #8b949e; margin-bottom: 4px;">
+        <span id="ota-status-lbl">Subiendo firmware...</span>
+        <strong id="ota-pct-lbl">0%</strong>
+      </div>
+      <div class="meter-bg" style="height: 12px; margin-top: 0;">
+        <div id="ota-bar" class="meter-fill" style="width: 0%; background: #58a6ff;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1016,6 +1123,56 @@ async function updateStatus() {
       badgeEl.style.color = '#8b949e';
       badgeEl.style.background = '#21262d';
       badgeEl.style.border = 'none';
+    }
+    // Actualizar Elevación 3D, Doppler y Tipo de Dron
+    const elevEl = document.getElementById('radar-elevation');
+    if (elevEl) {
+      if (azValid) {
+        elevEl.innerText = `${data.elevation || 0}° (${data.altitude_str || 'Baja Altitud'})`;
+        elevEl.style.color = (conf >= 65) ? '#ff3344' : '#58a6ff';
+      } else {
+        elevEl.innerText = '--° (Horizonte)';
+        elevEl.style.color = '#8b949e';
+      }
+    }
+    const dopEl = document.getElementById('doppler-status');
+    if (dopEl) {
+      dopEl.innerText = data.doppler || 'Estático / Hover';
+      dopEl.style.color = (data.doppler && data.doppler.includes('Aproximándose')) ? '#ff3344' : '#388bfd';
+    }
+    const classEl = document.getElementById('drone-class');
+    if (classEl) {
+      classEl.innerText = data.drone_type || (data.category || 'Ninguno');
+    }
+
+    // Actualizar tabla Malla Multi-Nodo
+    if (data.node_id && document.getElementById('node-id-input') && document.activeElement !== document.getElementById('node-id-input')) {
+      document.getElementById('node-id-input').value = data.node_id;
+    }
+    if (document.getElementById('mesh-peer-count')) {
+      document.getElementById('mesh-peer-count').innerText = data.mesh_count || 0;
+    }
+    const meshBody = document.getElementById('mesh-body');
+    if (meshBody && data.mesh_peers) {
+      if (data.mesh_peers.length === 0) {
+        meshBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 12px; color: #8b949e;">Escuchando balizas de otros nodos DronRadar en la red...</td></tr>';
+      } else {
+        let mHtml = '';
+        data.mesh_peers.forEach(p => {
+          const tColor = (p.tier === 1) ? '#ff3344' : ((p.tier === 3) ? '#ffcc00' : '#00ff66');
+          mHtml += `<tr style="border-bottom: 1px solid #21262d;">
+            <td style="padding: 6px; font-weight: bold; color: #58a6ff;">${p.node}</td>
+            <td style="padding: 6px; color: ${tColor}; font-weight: bold;">T${p.tier}</td>
+            <td style="padding: 6px;">${p.conf}%</td>
+            <td style="padding: 6px;">${p.az}°</td>
+            <td style="padding: 6px;">${p.el}°</td>
+            <td style="padding: 6px;">${p.type || '-'}</td>
+            <td style="padding: 6px;">${p.dop || '-'}</td>
+            <td style="padding: 6px; color: #8b949e;">${p.ip} (${p.age_s}s)</td>
+          </tr>`;
+        });
+        meshBody.innerHTML = mHtml;
+      }
     }
 
     drawRadar(az, conf, azValid);
@@ -1234,6 +1391,64 @@ async function updateHistory() {
   }
 }
 
+async function saveNodeId() {
+  const nid = document.getElementById('node-id-input').value.trim();
+  if (!nid) return;
+  try {
+    await fetch('/api/set_node?node_id=' + encodeURIComponent(nid), { method: 'POST' });
+    alert('ID de Nodo guardado: ' + nid);
+  } catch (e) {
+    alert('Error al guardar ID de nodo');
+  }
+}
+
+function uploadFirmwareOTA() {
+  const fileInput = document.getElementById('ota-file');
+  if (!fileInput.files || fileInput.files.length === 0) {
+    alert('Por favor selecciona primero un archivo de firmware (.bin)');
+    return;
+  }
+  const file = fileInput.files[0];
+  const progressBox = document.getElementById('ota-progress-box');
+  const bar = document.getElementById('ota-bar');
+  const pctLbl = document.getElementById('ota-pct-lbl');
+  const statusLbl = document.getElementById('ota-status-lbl');
+
+  progressBox.style.display = 'block';
+  statusLbl.innerText = 'Subiendo ' + file.name + ' (' + Math.round(file.size / 1024) + ' KB)...';
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/update', true);
+
+  xhr.upload.onprogress = function(e) {
+    if (e.lengthComputable) {
+      const pct = Math.round((e.loaded / e.total) * 100);
+      bar.style.width = pct + '%';
+      pctLbl.innerText = pct + '%';
+    }
+  };
+
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      statusLbl.innerText = '✅ ¡Firmware subido con éxito! Reiniciando nodo... Reconectando en 10s...';
+      bar.style.background = '#00ff66';
+      setTimeout(() => { location.reload(); }, 10000);
+    } else {
+      statusLbl.innerText = '❌ Error durante el flasheo OTA: ' + xhr.responseText;
+      bar.style.background = '#ff3344';
+    }
+  };
+
+  xhr.onerror = function() {
+    statusLbl.innerText = '❌ Error de red durante la actualización';
+    bar.style.background = '#ff3344';
+  };
+
+  const formData = new FormData();
+  formData.append('update', file);
+  xhr.send(formData);
+}
+
 // Auto-sincronizar hora del cliente inmediatamente
 syncBrowserTime();
 setInterval(updateStatus, 300);
@@ -1267,13 +1482,23 @@ void setupRoutes() {
         doc["freq_hz"] = currentFreqHz;
         doc["teeth"] = g_current_teeth;
         doc["chain"] = g_current_chain;
-        doc["category"] = (currentState == STATE_ALERT_T1 || currentState == STATE_ALERT_T3) ? classifyDrone(currentFreqHz) : "Ninguno (Despejado)";
-
+        doc["node_id"] = nodeName;
+        doc["is_ap"] = isAPMode;
         doc["confidence"] = (int)(currentConfidence * 100.0f);
         doc["azimuth"] = (int)currentAzimuth;
+        doc["elevation"] = azimuthValid ? (int)roundf(currentElevation) : 0;
+        doc["altitude_str"] = DoA3DEstimator::getAltitudeName(currentAltitudeCat);
+        doc["drone_type"] = (currentState == STATE_ALERT_T1 || currentState == STATE_ALERT_T3) ? DroneClassifier::getCategoryName(currentDroneCat) : "Ninguno (Despejado)";
+        doc["drone_short"] = DroneClassifier::getCategoryShort(currentDroneCat);
+        doc["doppler"] = (currentState == STATE_ALERT_T1 || currentState == STATE_ALERT_T3) ? DopplerTracker::getStatusName(currentDoppler) : "Estático / Hover";
+        doc["doppler_rate"] = roundf(currentDopplerRate * 10.0f) / 10.0f;
         doc["azimuth_valid"] = azimuthValid;
         doc["auto_thr"] = autoThresholdEnabled;
         doc["noise_floor"] = ambientNoiseFloor;
+
+        JsonArray peersArr = doc["mesh_peers"].to<JsonArray>();
+        mesh.populateJsonPeers(peersArr);
+        doc["mesh_count"] = mesh.getActivePeerCount();
 
         JsonArray specArr = doc["spectrum"].to<JsonArray>();
         for (int b = 0; b < WATERFALL_BINS; b++) {
@@ -1413,11 +1638,92 @@ void setupRoutes() {
         }
         server.send(200, "application/json", "{\"status\":\"ok\"}");
     });
+
+    // Endpoint Web OTA para flasheo remoto desde el mástil/caja estanca
+    server.on("/update", HTTP_POST, []() {
+        server.sendHeader("Connection", "close");
+        server.send(200, "text/plain", (Update.hasError()) ? "FALLO EN ACTUALIZACION" : "ACTUALIZACION COMPLETADA CON EXITO. REINICIANDO NODO...");
+        delay(1000);
+        ESP.restart();
+    }, []() {
+        HTTPUpload& upload = server.upload();
+        if (upload.status == UPLOAD_FILE_START) {
+            Serial.printf("[OTA] Recibiendo nuevo binario: %s\n", upload.filename.c_str());
+            if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+                Update.printError(Serial);
+            }
+        } else if (upload.status == UPLOAD_FILE_WRITE) {
+            if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+                Update.printError(Serial);
+            }
+        } else if (upload.status == UPLOAD_FILE_END) {
+            if (Update.end(true)) {
+                Serial.printf("[OTA] Subida completada: %u bytes recibidos. Reiniciando...\n", upload.totalSize);
+            } else {
+                Update.printError(Serial);
+            }
+        }
+    });
+
+    // Configuración del ID de Nodo
+    server.on("/api/set_node", HTTP_POST, []() {
+        if (server.hasArg("node_id")) {
+            String nid = server.arg("node_id");
+            nid.trim();
+            if (nid.length() > 0 && nid.length() < sizeof(nodeName)) {
+                strlcpy(nodeName, nid.c_str(), sizeof(nodeName));
+                mesh.setNodeId(nodeName);
+                prefs.begin("dronradar", false);
+                prefs.putString("node_id", nodeName);
+                prefs.end();
+                Serial.printf("[CONFIG] Nuevo Node ID guardado: %s\n", nodeName);
+            }
+        }
+        server.send(200, "application/json", "{\"status\":\"ok\"}");
+    });
 }
 
 // ============================================================================
-// CLIENTE MQTT
+// CLIENTE MQTT & HOME ASSISTANT AUTO-DISCOVERY
 // ============================================================================
+void publishHomeAssistantDiscovery() {
+    if (!mqttClient.connected()) return;
+
+    auto pubDisc = [](const char* sId, const char* sName, const char* icon, const char* unit, const char* valTpl) {
+        char topic[128];
+        snprintf(topic, sizeof(topic), "homeassistant/sensor/dronradar_%s/%s/config", nodeName, sId);
+
+        JsonDocument doc;
+        doc["name"] = String("DronRadar ") + nodeName + " " + sName;
+        doc["stat_t"] = String(appConfig.topic_prefix) + "/" + nodeName + "/state";
+        doc["val_tpl"] = valTpl;
+        if (icon) doc["icon"] = icon;
+        if (unit) doc["unit_of_meas"] = unit;
+        doc["uniq_id"] = String("dr_") + nodeName + "_" + sId;
+
+        JsonObject dev = doc["dev"].to<JsonObject>();
+        dev["ids"] = String("dronradar_") + nodeName;
+        dev["name"] = String("DronRadar ") + nodeName;
+        dev["mf"] = "VolAnti Acoustic Labs";
+        dev["mdl"] = "ESP32-S3 Sentry Array";
+        dev["sw"] = "2.1.0-Mesh-OTA";
+
+        char buf[512];
+        serializeJson(doc, buf);
+        mqttClient.publish(topic, buf, true);
+    };
+
+    pubDisc("state", "Estado", "mdi:shield-alert", NULL, "{{ value_json.state }}");
+    pubDisc("conf", "Nivel de Confianza", "mdi:percent", "%", "{{ value_json.conf }}");
+    pubDisc("azimuth", "Azimut 360", "mdi:compass", "°", "{{ value_json.azimuth }}");
+    pubDisc("elevation", "Elevacion 3D", "mdi:angle-acute", "°", "{{ value_json.elevation }}");
+    pubDisc("altitude", "Altitud Estimada", "mdi:altimeter", NULL, "{{ value_json.altitude }}");
+    pubDisc("freq", "Frecuencia Fundamental", "mdi:sine-wave", "Hz", "{{ value_json.freq_hz }}");
+    pubDisc("type", "Clase de Dron", "mdi:quadcopter", NULL, "{{ value_json.drone_type }}");
+    pubDisc("doppler", "Vector Doppler", "mdi:radar", NULL, "{{ value_json.doppler }}");
+    Serial.println("[MQTT] Auto-Discovery de Home Assistant publicado.");
+}
+
 void reconnectMQTT() {
     if (!wifiConnected || mqttClient.connected()) return;
     
@@ -1438,6 +1744,7 @@ void reconnectMQTT() {
 
     if (ok) {
         Serial.println("[MQTT] Conectado exitosamente.");
+        publishHomeAssistantDiscovery();
     }
 }
 
@@ -1447,15 +1754,21 @@ void publishState() {
     JsonDocument doc;
     doc["state"] = (currentState == STATE_ALERT_T1 || currentState == STATE_ALERT_T2) ? "ALERT" :
                    ((currentState == STATE_ALERT_T3 || currentState == STATE_ALERT_T4) ? "DETECTING" : "LISTENING");
+    doc["conf"] = (int)(currentConfidence * 100.0f);
     doc["score"] = currentScore;
     doc["freq_hz"] = currentFreqHz;
     doc["teeth"] = g_current_teeth;
     doc["chain"] = g_current_chain;
-    doc["category"] = (currentState == STATE_ALERT_T1 || currentState == STATE_ALERT_T3) ? classifyDrone(currentFreqHz) : "Ninguno (Despejado)";
+    doc["azimuth"] = azimuthValid ? (int)currentAzimuth : 0;
+    doc["elevation"] = azimuthValid ? (int)roundf(currentElevation) : 0;
+    doc["altitude"] = DoA3DEstimator::getAltitudeName(currentAltitudeCat);
+    doc["drone_type"] = (currentState == STATE_ALERT_T1 || currentState == STATE_ALERT_T3) ? DroneClassifier::getCategoryName(currentDroneCat) : "Ninguno (Despejado)";
+    doc["doppler"] = (currentState == STATE_ALERT_T1 || currentState == STATE_ALERT_T3) ? DopplerTracker::getStatusName(currentDoppler) : "Estático / Hover";
+    doc["node"] = nodeName;
 
-    char buf[256];
+    char buf[384];
     serializeJson(doc, buf);
-    String topic = String(appConfig.topic_prefix) + "/state";
+    String topic = String(appConfig.topic_prefix) + "/" + nodeName + "/state";
     mqttClient.publish(topic.c_str(), buf);
 }
 
@@ -1520,13 +1833,23 @@ void setup() {
         0   // Core 0
     );
 
+    // Cargar Node ID de NVS
+    prefs.begin("dronradar", false);
+    String savedNode = prefs.getString("node_id", "DR-01");
+    strlcpy(nodeName, savedNode.c_str(), sizeof(nodeName));
+    mesh.setNodeId(nodeName);
+    prefs.end();
+
+    // Inicializar driver de radio LoRa stub (SX1262/SX1276)
+    loraRadio.begin();
+
     // Conexión WiFi no bloqueante
     Serial.printf("[WIFI] Intentando conectar a '%s'...\n", WIFI_SSID);
     WiFi.mode(WIFI_AP_STA);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
     int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 12) { // 6 segundos máximo
+    while (WiFi.status() != WL_CONNECTED && attempts < 16) { // 8 segundos máximo
         delay(500);
         Serial.print(".");
         attempts++;
@@ -1534,21 +1857,25 @@ void setup() {
 
     if (WiFi.status() == WL_CONNECTED) {
         wifiConnected = true;
+        isAPMode = false;
         Serial.println("\n[WIFI OK] ¡Conectado a la red de casa!");
         Serial.printf("[WIFI] IP Asignada: http://%s\n", WiFi.localIP().toString().c_str());
+        mesh.begin();
     } else {
         wifiConnected = false;
-        Serial.println("\n[WIFI AVISO] No se detectó la red 'CERDOVOLADOR'.");
-        Serial.println("[WIFI] Continuando en MODO LOCAL (sin bloqueo).");
+        isAPMode = true;
+        Serial.println("\n[WIFI AVISO] Red no disponible. Activando MODO AP DE EMERGENCIA.");
         
         WiFi.disconnect(true);
         delay(100);
         WiFi.mode(WIFI_AP);
         delay(100);
-        bool ap_ok = WiFi.softAP("DronRadar-Node", "dronradar123", 1, 0, 4);
-        Serial.printf("[AP] Estado de Punto de Acceso: %s\n", ap_ok ? "LEVANTADO Y EMITIENDO" : "ERROR AL CREAR");
-        Serial.printf("[AP] Red: 'DronRadar-Node'  | Password: 'dronradar123'\n");
-        Serial.printf("[AP] Conéctate y abre: http://%s\n", WiFi.softAPIP().toString().c_str());
+        char apSsid[32];
+        snprintf(apSsid, sizeof(apSsid), "DronRadar-%s", nodeName);
+        bool ap_ok = WiFi.softAP(apSsid, "dronradar123", 1, 0, 4);
+        Serial.printf("[AP] Punto de Acceso: %s\n", ap_ok ? "EMITIENDO" : "ERROR");
+        Serial.printf("[AP] Red: '%s' | Pass: 'dronradar123'\n", apSsid);
+        Serial.printf("[AP] Web: http://%s\n", WiFi.softAPIP().toString().c_str());
     }
 
     setupRoutes();
@@ -1593,6 +1920,24 @@ void loop() {
 
     // Gestionar parpadeos y color del LED
     handleLedStatus();
+
+    // Actualización y emisión de baliza Malla Inter-Nodo
+    mesh.update(millis());
+
+    static unsigned long lastMeshBroadcast = 0;
+    unsigned long meshInterval = (currentTier > 0) ? 1000 : 3000;
+    if (millis() - lastMeshBroadcast > meshInterval) {
+        lastMeshBroadcast = millis();
+        mesh.broadcastTelemetry(
+            currentTier,
+            (int)(currentConfidence * 100.0f),
+            currentAzimuth,
+            currentElevation,
+            currentFreqHz,
+            DroneClassifier::getCategoryShort(currentDroneCat),
+            DopplerTracker::getStatusName(currentDoppler)
+        );
+    }
 
     // Comandos por consola serie
     if (Serial.available()) {
